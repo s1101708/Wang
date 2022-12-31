@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template,request
 from datetime import datetime
 app = Flask(__name__)
 
@@ -7,12 +7,9 @@ def index():
     homepage = "<h1>王冠權Python網頁</h1>"
     homepage += "<a href=/mis>MIS</a><br>"
     homepage += "<a href=/today>顯示日期時間</a><br>"
+    homepage += "<a href=/welcome>歡迎</a><br>"
+    homepage += "<a href=/account>帳密輸入</a><br>"
     return homepage
-
-
-@app.route("/")
-def index():
-    return "Hello World!"
 
 @app.route("/mis")
 def course():
@@ -27,6 +24,17 @@ def today():
 def welcome():
     user = request.values.get("nick")
     return render_template("welcome.html", name=user)
+
+@app.route("/account", methods=["GET", "POST"])
+def account():
+    if request.method == "POST":
+        user = request.form["user"]
+        pwd = request.form["pwd"]
+        result = "您輸入的帳號是：" + user + "; 密碼為：" + pwd 
+        return result
+    else:
+        return render_template("account.html")
+
 
 
 if __name__ == "__main__":
