@@ -1,41 +1,47 @@
-from flask import Flask, render_template,request
-from datetime import datetime
+from flask import Flask, render_template, request, make_response, jsonify 
+import firebase_admin
+from firebase_admin import credentials, firestore
+
+cred = credentials. Certificate("serviceAccountKey.json")
+firebase_admin.initialize_app (cred)
+db = firestore.client()
 app = Flask(__name__)
 
 @app.route("/")
 def index():
-    homepage = "<h1>王冠權Python網頁</h1>"
-    homepage += "<a href=/mis>MIS</a><br>"
-    homepage += "<a href=/today>顯示日期時間</a><br>"
-    homepage += "<a href=/welcome>歡迎</a><br>"
-    homepage += "<a href=/account>帳密輸入</a><br>"
-    return homepage
-
-@app.route("/mis")
-def course():
-    return "<h1>資訊管理導論</h1>"
-
-@app.route("/today")
-def today():
-    now = datetime.now()
-    return render_template("today.html", datetime = str(now))
-
-@app.route("/welcome", methods=["GET", "POST"])
-def welcome():
-    user = request.values.get("nick")
-    return render_template("welcome.html", name=user)
-
-@app.route("/account", methods=["GET", "POST"])
-def account():
-    if request.method == "POST":
-        user = request.form["user"]
-        pwd = request.form["pwd"]
-        result = "您輸入的帳號是：" + user + "; 密碼為：" + pwd 
-        return result
-    else:
-        return render_template("account.html")
+  homepage  = "<h1>Python讀取Firestore</h1>"
+  homepage += "<a href=/search>Mc</a><br><br>"
+  return homepage
 
 
+@app.route("/webhook", methods=["POST"])
+def webhook():
+  # build a request object
+  req = request.get_json(force=True) 
+  # fetch queryResult from json
+  action = req.get("queryResult").get("action")
+  # msg = req.get("queryResult").get("queryText") 
+  #info = "動作: " + action + "; 查詢內容: " + msg
+
+  if(action == "choice"):
+  # flavor = req.get("queryResult").get("parmeters").get("flavor") 
+  # info = "您選擇的口味是" + flavor
+
+    flavor = req.get("queryResult").get("parameters").get("flavor ") 
+    info = "您選擇的口味是:" + flavor +",相關資料 : \n\n"
+
+    collection_ref = db.collection("樂事餅乾")
+    docs = collection_ref.get()
+    result = ""
+    for doc in docs:
+      dict = doc.to_dict()
+      if flavor in dict["口味"] :
+        info += "品名:" + dict["品名"] + "\n\n"
+        info += "口味:" + dict["口味"] + "\n\n"
+        info += "介紹:" + dict["介紹"] + "\n\n"
+
+    info += result
+  return make_response(jsonify ({"fulfillmentText": info}))
 
 if __name__ == "__main__":
     app.run()
