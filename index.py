@@ -37,7 +37,7 @@ def webhook():
         info += "口味:" + dict["口味"] + "\n\n"
         info += "介紹:" + dict["介紹"] + "\n\n"
     info += result
-  return make_response(jsonify({"fulfillmentText": info}))
+  return make_response(jsonify ({"fulfillmentText": info}))
 
 if __name__ == "__main__":
     app.run(
